@@ -30,7 +30,6 @@
 
 import CareKitStore
 import Foundation
-import HealthKit
 import ModelsDSTU2
 
 /// Describes a type that is capable of encoding and decoding a CareKit entity
@@ -97,74 +96,5 @@ public extension OCKFHIRResourceCoder {
         let resource = try convert(entity: entity)
         let data = try resource.encode(to: format)
         return data
-    }
-}
-
-public extension OCKFHIRResourceCoder where Resource.Release == DSTU2 {
-
-    /// Decode and convert clinical health records from HealthKit into CareKit objects.
-    ///
-    /// - Parameters:
-    ///   - clinicalTypeIdentifier: An `HKClinicalTypeIdentifier`
-    ///   - store: A HealthKit store to query for medication orders.
-    ///   - completion: A closure that will be called upon completion. Always called on the main queue.
-    func decodeClinicalHealthRecords(
-        clinicalTypeIdentifier: HKClinicalTypeIdentifier,
-        from store: HKHealthStore,
-        completion: @escaping OCKResultClosure<[Entity]>) {
-
-        let clinicalType = HKObjectType.clinicalType(forIdentifier: clinicalTypeIdentifier)!
-
-        store.requestAuthorization(toShare: nil, read: [clinicalType]) { success, error in
-            guard success else {
-                let error = OCKStoreError.addFailed(reason: "Failed to request authorization for HealthKit's clinical records.")
-                DispatchQueue.main.async { completion(.failure(error)) }
-                return
-            }
-
-            // Success doesn't necessarily mean that we got permission to read. It just means the user answered yes or no.
-            // If the following queries return nothing, it could be either because the user did not grant us permission, or
-            // because there really isn't any data available. There is no way to tell which is the case. This is a privacy
-            // feature that is baked in HealthKit.
-            let clinicalQuery = HKSampleQuery(
-                sampleType: clinicalType,
-                predicate: nil,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: nil) { _, samples, error in
-
-                func fail(_ message: String) {
-                    let error = OCKStoreError.addFailed(reason: "Failed to fetch medications from HealthKit. \(message)")
-                    DispatchQueue.main.async { completion(.failure(error)) }
-                }
-
-                if let error = error {
-                    fail(error.localizedDescription)
-                    return
-                }
-
-                guard let fetchedSamples = samples else {
-                    fail("No samples found.")
-                    return
-                }
-
-                guard let clinicalSamples = fetchedSamples as? [HKClinicalRecord] else {
-                    fail("Samples were not clinical records.")
-                    return
-                }
-
-                do {
-                    let rawData = clinicalSamples.compactMap { $0.fhirResource?.data }
-                    let resources = rawData.map { OCKFHIRResourceData<DSTU2, JSON>(data: $0) }
-                    let tasks = try resources.map(self.decode)
-                    DispatchQueue.main.async {
-                        completion(.success(tasks))
-                    }
-                } catch {
-                    fail(error.localizedDescription)
-                }
-            }
-
-            store.execute(clinicalQuery)
-        }
     }
 }

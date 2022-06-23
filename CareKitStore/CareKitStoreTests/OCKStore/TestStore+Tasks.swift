@@ -29,7 +29,6 @@
  */
 
 @testable import CareKitStore
-import HealthKit
 import XCTest
 
 class TestStoreTasks: XCTestCase {

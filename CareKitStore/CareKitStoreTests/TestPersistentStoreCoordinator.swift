@@ -146,70 +146,16 @@ class TestPersistentStoreCoordinator: XCTestCase {
     func testFetchCanResultInAnArrayPopulatedWithDifferentTypes() throws {
         let coordinator = OCKStoreCoordinator()
         let schedule = OCKSchedule.mealTimesEachDay(start: Date(), end: nil)
-        let store = OCKStore(name: UUID().uuidString, type: .inMemory)
-        let link = OCKHealthKitLinkage(quantityIdentifier: .stepCount, quantityType: .cumulative, unit: .count())
-        let hkStore = OCKHealthKitPassthroughStore(store: store)
-        try hkStore.addTaskAndWait(OCKHealthKitTask(id: "A", title: "A", carePlanUUID: nil, schedule: schedule, healthKitLinkage: link))
-
+        //let store = OCKStore(name: UUID().uuidString, type: .inMemory)
+        
         let ckStore = OCKStore(name: UUID().uuidString, type: .inMemory)
         try ckStore.addTaskAndWait(OCKTask(id: "B", title: "B", carePlanUUID: nil, schedule: schedule))
 
         coordinator.attachReadOnly(eventStore: ckStore)
-        coordinator.attachReadOnly(eventStore: hkStore)
         coordinator.fetchAnyTasks(query: OCKTaskQuery()) { result in
             let tasks = try? result.get()
             XCTAssert(tasks?.count == 2)
             XCTAssert(tasks?.compactMap { $0 as? OCKTask }.count == 1)
-            XCTAssert(tasks?.compactMap { $0 as? OCKHealthKitTask }.count == 1)
         }
-    }
-
-    func testPersistentStoreCoordinatorDoesNotSendHealthKitTasksToOCKStore() {
-        let coordinator = OCKStoreCoordinator()
-        let store = OCKStore(name: UUID().uuidString, type: .inMemory)
-        coordinator.attach(store: store)
-
-        let schedule = OCKSchedule.dailyAtTime(hour: 9, minutes: 0, start: Date(), end: nil, text: nil)
-        let link = OCKHealthKitLinkage(quantityIdentifier: .stepCount, quantityType: .cumulative, unit: .count())
-        let task = OCKHealthKitTask(id: "A", title: nil, carePlanUUID: nil, schedule: schedule, healthKitLinkage: link)
-
-        XCTAssertThrowsError(try coordinator.addAnyTaskAndWait(task))
-    }
-
-    func testStoreCoordinatorDoesNotSendNormalOutcomesToHealthKit() {
-        let coordinator = OCKStoreCoordinator()
-        let store = OCKStore(name: UUID().uuidString, type: .inMemory)
-        let passthrough = OCKHealthKitPassthroughStore(store: store)
-        let outcome = OCKOutcome(taskUUID: UUID(), taskOccurrenceIndex: 0, values: [])
-        let willHandle = coordinator.outcomeStore(passthrough, shouldHandleWritingOutcome: outcome)
-        XCTAssertFalse(willHandle)
-    }
-
-    func testStoreCoordinatorDoesNotSendHealthKitOutcomesToOCKStore() {
-        let coordinator = OCKStoreCoordinator()
-        let store = OCKStore(name: UUID().uuidString, type: .inMemory)
-        let outcome = OCKHealthKitOutcome(taskUUID: UUID(), taskOccurrenceIndex: 0, values: [])
-        let willHandle = coordinator.outcomeStore(store, shouldHandleWritingOutcome: outcome)
-        XCTAssertFalse(willHandle)
-    }
-
-    func testCanAssociateHealthKitTaskWithCarePlan() throws {
-        let store = OCKStore(name: UUID().uuidString, type: .inMemory)
-        let passthrough = OCKHealthKitPassthroughStore(store: store)
-
-        let coordinator = OCKStoreCoordinator()
-        coordinator.attach(store: store)
-        coordinator.attach(eventStore: passthrough)
-
-        let plan = OCKCarePlan(id: "plan", title: "My Plan", patientUUID: nil)
-        try coordinator.addAnyCarePlanAndWait(plan)
-
-        let schedule = OCKSchedule.dailyAtTime(hour: 0, minutes: 0, start: Date(), end: nil, text: nil)
-        let task = OCKTask(id: "task", title: "My Task", carePlanUUID: plan.uuid, schedule: schedule)
-        try coordinator.addAnyTaskAndWait(task)
-
-        let query = OCKTaskQuery(id: "task")
-        let fetched = try coordinator.fetchAnyTasksAndWait(query: query)
-        XCTAssert(fetched.first?.belongs(to: plan) == true)
     }
 }

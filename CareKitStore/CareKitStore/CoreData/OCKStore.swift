@@ -75,7 +75,6 @@ open class OCKStore: OCKStoreProtocol, Equatable {
         OCKCarePlan.self,
         OCKContact.self,
         OCKTask.self,
-        OCKHealthKitTask.self,
         OCKOutcome.self
     ]
     

@@ -45,9 +45,6 @@ public enum OCKEntity: Equatable, Codable {
     /// A task entity.
     case task(OCKTask)
 
-    /// A HealthKit linked task.
-    case healthKitTask(OCKHealthKitTask)
-
     /// An outcome entity.
     case outcome(OCKOutcome)
 
@@ -58,7 +55,6 @@ public enum OCKEntity: Equatable, Codable {
         case .carePlan: return .carePlan
         case .contact: return .contact
         case .task: return .task
-        case .healthKitTask: return .healthKitTask
         case .outcome: return .outcome
         }
     }
@@ -69,7 +65,6 @@ public enum OCKEntity: Equatable, Codable {
         case let .carePlan(plan): return plan
         case let .contact(contact): return contact
         case let .task(task): return task
-        case let .healthKitTask(task): return task
         case let .outcome(outcome): return outcome
         }
     }
@@ -86,7 +81,6 @@ public enum OCKEntity: Equatable, Codable {
         case .carePlan: self = .carePlan(try container.decode(OCKCarePlan.self, forKey: .object))
         case .contact: self = .contact(try container.decode(OCKContact.self, forKey: .object))
         case .task: self = .task(try container.decode(OCKTask.self, forKey: .object))
-        case .healthKitTask: self = .healthKitTask(try container.decode(OCKHealthKitTask.self, forKey: .object))
         case .outcome: self = .outcome(try container.decode(OCKOutcome.self, forKey: .object))
         }
     }
@@ -99,7 +93,6 @@ public enum OCKEntity: Equatable, Codable {
         case let .carePlan(plan): try container.encode(plan, forKey: .object)
         case let .contact(contact): try container.encode(contact, forKey: .object)
         case let .task(task): try container.encode(task, forKey: .object)
-        case let .healthKitTask(task): try container.encode(task, forKey: .object)
         case let .outcome(outcome): try container.encode(outcome, forKey: .object)
         }
     }
@@ -118,9 +111,6 @@ public enum OCKEntity: Equatable, Codable {
 
         /// The task entity type.
         case task
-
-        /// The HealthKit task type.
-        case healthKitTask
 
         /// The outcome entity type.
         case outcome

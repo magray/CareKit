@@ -18,12 +18,6 @@
 ### watchOS Support
 - CareKit, CareKitUI, CareKitStore and the new CareKitFHIR now build for watchOS
 
-### HealthKit Driven Tasks
-- HealthKit data can now be used to autocomplete CareKit tasks
-- OCKStoreCoordinator
-- OCKHealthKitPassthroughStore
-- OCKHealthKitTask & OCKHealthKitOutcome
-
 ### FHIR Compatibility
 - A new package, CareKitFHIR, for converting to and from FHIR resources
 - Support for DSTU2 Patient, CarePlanActivity, and MedicationOrder resources
