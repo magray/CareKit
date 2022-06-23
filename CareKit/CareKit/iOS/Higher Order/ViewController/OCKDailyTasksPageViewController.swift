@@ -133,15 +133,7 @@ open class OCKDailyTasksPageViewController: OCKDailyPageViewController {
         events: [OCKAnyEvent],
         eventQuery: OCKEventQuery) -> UIViewController? {
 
-        // If the task is linked to HealthKit, show a view geared towards displaying HealthKit data
-        if #available(iOS 14, *), task is OCKHealthKitTask {
-            let controller = OCKNumericProgressTaskController(storeManager: storeManager)
-            controller.setViewModelAndObserve(events: events, query: eventQuery)
-            return NumericProgressTaskView(controller: controller)
-                .hosted()
-
-        // Show the button log if the task does not impact adherence
-        } else if !task.impactsAdherence {
+        if !task.impactsAdherence {
             let taskViewController = OCKButtonLogTaskViewController(controller: .init(storeManager: self.storeManager), viewSynchronizer: .init())
             taskViewController.controller.setViewModelAndObserve(events: events, query: eventQuery)
             return taskViewController
