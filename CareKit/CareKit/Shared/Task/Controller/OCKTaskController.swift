@@ -207,7 +207,7 @@ open class OCKTaskController: ObservableObject {
             // events for other tasks. Just let the developer know an error has occurred.
             self.error = error
         }
-        .sink { [unowned self] events in
+        .sink { [weak self] events in
 
             // If no events were found, clear the view model
             if clearsViewModelOnFailure && events.isEmpty {
