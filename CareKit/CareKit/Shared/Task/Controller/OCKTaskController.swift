@@ -90,7 +90,7 @@ open class OCKTaskController: ObservableObject {
                 return .init()
             }
             // Fetch events for the newly received tasks and observe changes to tasks and events.
-            .sink { [unowned self] tasks in
+            .sink { [weak self] tasks in
                 let ids = Array(Set(tasks.map { $0.id }))
                 self.fetchAndObserveEvents(forTaskIDs: ids, eventQuery: eventQuery, overwritesViewModel: true, clearsViewModelOnFailure: true)
             }.store(in: &cancellables)
